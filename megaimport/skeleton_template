@@ -1,0 +1,14 @@
+from megaimport import cells
+from megaimport.parser import BaseParser
+from django.core.management import BaseCommand
+
+
+class Command(BaseCommand, BaseParser):
+    """
+    New skeleton for file parser; please, describe
+    fields and logic prior to running.
+    WARNING: please, declare field in the same order
+    they are declared in document you are wanting
+    to parse; use EmptyCell to skip cells.
+    """
+    pass

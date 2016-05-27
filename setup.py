@@ -27,7 +27,6 @@ setup(name='telega-megaimport',
           "et-xmlfile",
           "jdcal",
           "openpyxl",
-          "progressbar2",
           "wsgiref"
       ],
       include_package_data=True,

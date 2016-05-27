@@ -1,5 +1,5 @@
 """
-Django settings for telega_megaimport project.
+Django settings for example project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'xfq+_tbqlf9f192^c@erm$+n(m(2o$9)iv6n4a)!s11#p)-4sw'
+SECRET_KEY = '5^j(c3*7%7@xxq-77c@8=9atwjp8axy4fdpc_n4$1vfl!o$=4p'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -36,7 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'telega-megaimport'
+    'megaimport'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -49,9 +49,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'telega_megaimport.urls'
+ROOT_URLCONF = 'example.urls'
 
-WSGI_APPLICATION = 'telega_megaimport.wsgi.application'
+WSGI_APPLICATION = 'example.wsgi.application'
 
 
 # Database
