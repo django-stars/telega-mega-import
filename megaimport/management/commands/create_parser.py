@@ -1,10 +1,14 @@
 import os
-from django.conf import settings
-from django.template import Template, Context
 
 from optparse import make_option
-
+from django.conf import settings
+from django.template import Template, Context
 from django.core.management.base import BaseCommand
+
+if hasattr(settings, 'NEW_PARSER_NAME'):
+    NEW_PARSER_NAME = settings.NEW_PARSER_NAME
+else:
+    NEW_PARSER_NAME = 'new_skeleton_parser'
 
 
 class Command(BaseCommand):
@@ -16,7 +20,7 @@ class Command(BaseCommand):
         ),
         make_option(
             '--filename',
-            default='new_skeleton_parser',
+            default=NEW_PARSER_NAME,
             help='How to name new parser skeleton file'
         ),
     )
@@ -26,7 +30,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         path = options.get('path')
-        title = options.get('parser_title')
         filename = options.get('filename') + '.py'
         if hasattr(settings, "PROJECT_DIR"):
             filepath = os.path.join(settings.PROJECT_DIR, path)
@@ -40,7 +43,7 @@ class Command(BaseCommand):
 
         content = content.decode('utf-8')
         template = Template(content)
-        content = template.render(Context({'title': title}))
+        content = template.render(Context())
         content = content.encode('utf-8')
         fobj.write(content)
         fobj.close()

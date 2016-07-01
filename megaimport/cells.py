@@ -6,9 +6,9 @@ class CellBase(object):
     creation_counter = 0
 
     def __init__(self, required=True, default=None):
-        # Hack, is used for sorting in parser-creator
         if default and required:
             raise ValueError('Default value and required value can\'t be combined!')
+        # Hack, is used for sorting in parser-creator
         self.creation_order = CellBase.creation_counter
         CellBase.creation_counter += 1
         self.title = None
@@ -33,7 +33,7 @@ class CellBase(object):
         return None
 
 
-class EmptyCell(CellBase):
+class CellEmpty(CellBase):
     def normalize(self, value):
         return None
 
@@ -42,8 +42,8 @@ class EmptyCell(CellBase):
 
 
 class CellString(CellBase):
-    def __init__(self, *args, **kwargs):
-        self.strip = True if 'strip' in kwargs and kwargs['strip'] else False
+    def __init__(self, strip=False, *args, **kwargs):
+        self.strip = strip
         super(CellString, self).__init__(*args, **kwargs)
 
     def normalize(self, value):
@@ -85,14 +85,14 @@ class CellInteger(CellBase):
     def normalize(self, value):
         try:
             return int(value)
-        except TypeError:
+        except ValueError:
             return value
 
     def validate(self, value):
         error = super(CellInteger, self).validate(value) or []
         try:
             int(value)
-        except TypeError:
+        except ValueError:
             error += ['Not convertable to integer']
         if error:
             return error
@@ -104,14 +104,14 @@ class CellFloat(CellBase):
     def normalize(self, value):
         try:
             return float(value)
-        except TypeError:
+        except ValueError:
             return value
 
     def validate(self, value):
         error = super(CellFloat, self).validate(value) or []
         try:
             float(value)
-        except TypeError:
+        except ValueError:
             error += ['Not convertable to float']
         if error:
             return error
@@ -122,10 +122,12 @@ class CellFloat(CellBase):
 class CellModel(CellBase):
     def __init__(self, queryset=None, lookup_arg='pk', *args, **kwargs):
         self.queryset = queryset
+        if queryset is None:
+            raise ValueError('Queryset is required!')
         self.lookup_arg = lookup_arg
         super(CellModel, self).__init__(*args, **kwargs)
 
-    def normalizer(self, value):
+    def normalize(self, value):
         try:
             return self.queryset.get(**{self.lookup_arg: value})
         except ObjectDoesNotExist:

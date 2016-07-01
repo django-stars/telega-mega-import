@@ -1,15 +1,17 @@
 import csv
-
+import time
 import os.path
+
 from optparse import make_option
 from cells import CellBase, EmptyCell
 from collections import OrderedDict
-
+from openpyxl import load_workbook
 from django.core.management import BaseCommand, CommandError
 from django.utils.six import with_metaclass
 from django.utils import timezone
 from django.db import transaction
-from openpyxl import load_workbook
+
+from utils import UnicodeWriter
 
 
 class ParserMetaclass(type):
@@ -114,9 +116,12 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
             raise CommandError('No progressbar package found! Please, install it to track progress')
 
     def handle(self, *args, **options):
+        self.start_time = time.time()
         self.parsed_successfully = 0
         self.parsed_unsuccessfully = 0
         self.skipped = 0
+        self.failed_rows = list()
+        self.skipped_rows = list()
         self.__set_options(options)
         self.__check_and_load_file(args)
         if self.is_csv:
@@ -228,7 +233,7 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                 if res is None:
                     res = self.success('Row {} parsed successfully'.format(row_number))
             except BaseException, e:
-                res = self.failure('Error during parsing row {}: {}'.format(row_number, e))
+                res = self.failure('Error during parsing row {}: {}'.format(row_number, e), row)
             self.__process_result(res)
 
     def success(self, message):
@@ -238,10 +243,11 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
         }
         return result_dict
 
-    def failure(self, message):
+    def failure(self, message, row):
         result_dict = {
             'status': 'Failure',
-            'message': message
+            'message': message,
+            'row': row,
         }
         return result_dict
 
@@ -258,17 +264,33 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
             self.parsed_successfully += 1
         elif status == 'Failure':
             self.parsed_unsuccessfully += 1
+            self.failed_rows += res['row']
         elif status == 'Skipped':
             self.skipped += 1
         else:
             raise CommandError('Unexpected result returned')
 
-    def parse_statistics(self, res):
-        print 'Done!'
-        print 'Successfully parsed {} items.'.format(self.parsed_successfully)
-        print 'Failed to parse {} items.'.format(self.parsed_unsuccessfully)
-        print 'Skipped {} items.'.format(self.skipped)
+    def parse_statistics(self):
+        time_spent = time.time() - self.start_time
+        result_string = 'Done!\nSuccessfully parsed {} items.\nFailed to parse {} items.\nSkipped {} items.\nTime spent:{}'.format(
+            self.parsed_successfully, self.parsed_unsuccessfully, self.skipped, time_spent)
+        print result_string
         if self.savestats:
             output_file_name = 'parse_statistics_' + timezone.now().strftime("%Y%m%d-%H%m") + '.txt'
-            print 'Saving statistics to file: {}'.format(output_file_name)
-            # TODO: implement real saving!
+            failed_csv_output_file = 'failed_rows_' + timezone.now().strftime("%Y%m%d-%H%m") + '.csv'
+            result_string += '\n Failed rows saved to {}'.format(failed_csv_output_file)
+            print 'Saving extended statistics to file: {}'.format(output_file_name)
+            f = open(output_file_name, 'w')
+            f.write(result_string)
+            f.close()
+            with open(failed_csv_output_file, 'wb') as csv_output:
+                writer = UnicodeWriter(csv_output, quotechar='"', delimiter=';')
+                output_file_name.write('Next rows failed to be parsed\n')
+                for r in self.failed_rows:
+                    try:
+                        for i in xrange(len(r)):  # cleaner way "for x in r" fails to work
+                            r[i] = r[i].decode('UTF-8')
+                        writer.writerow(r)
+                    except BaseException as e:
+                        print e
+                        print r

@@ -6,11 +6,11 @@ def readme():
         return f.read()
 
 setup(name='telega-megaimport',
-      version='0.3',
+      version='0.4',
       description='Django app for creating parsers',
       long_description=readme(),
       classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Topic :: Text Processing',
