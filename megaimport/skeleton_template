@@ -10,5 +10,8 @@ class Command(BaseParser):
     WARNING: please, declare field in the same order
     they are declared in document you are wanting
     to parse; use CellEmpty to skip cells.
+    Override row(values) method to process row parsing
+    results, override {attr_name}_handler(value) to
+    process exact field parsing results
     """
     pass

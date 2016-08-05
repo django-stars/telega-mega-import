@@ -25,7 +25,9 @@ class Command(BaseCommand):
         ),
     )
     help = """
-       Create parser skeleton for selected kind of files
+       Create skeleton for further parser declaring.
+       --path: specify path, where parser skeleton should be created
+       --filename: specify parser name
     """
 
     def handle(self, *args, **options):

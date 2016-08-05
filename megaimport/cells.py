@@ -2,6 +2,12 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class CellBase(object):
+    """
+    Base class for inheritance for Cell creation
+
+    Don't forget to override kls.normalize(value) and
+    kls.validate(value) if required
+    """
     # Counter is added for ordering of field-declaration
     creation_counter = 0
 
@@ -34,6 +40,9 @@ class CellBase(object):
 
 
 class CellEmpty(CellBase):
+    """
+    CellEmpty: use it for declaration of empty columns in yor file
+    """
     def normalize(self, value):
         return None
 
@@ -42,6 +51,10 @@ class CellEmpty(CellBase):
 
 
 class CellString(CellBase):
+    """
+    Use for parsing string values; converts parse results to
+    string.
+    """
     def __init__(self, strip=False, *args, **kwargs):
         self.strip = strip
         super(CellString, self).__init__(*args, **kwargs)
@@ -60,6 +73,12 @@ class CellString(CellBase):
 
 
 class CellBoolean(CellBase):
+    """
+    Use for parsing boolean values;
+    True = 'yes', 'y', '+', '1', 'true'
+    False = 'no', 'n', '-', '0', 'false'
+    Returns boolean value.
+    """
     true_values = ['yes', 'y', '+', '1', 'true']
     false_values = ['no', 'n', '-', '0', 'false']
 
@@ -82,6 +101,11 @@ class CellBoolean(CellBase):
 
 
 class CellInteger(CellBase):
+    """
+    Use for parsing integer values;
+    Retunrns integer
+    """
+
     def normalize(self, value):
         try:
             return int(value)
@@ -101,6 +125,11 @@ class CellInteger(CellBase):
 
 
 class CellFloat(CellBase):
+    """
+    Use for parsing float values;
+    Retunrns float
+    """
+
     def normalize(self, value):
         try:
             return float(value)
@@ -120,6 +149,11 @@ class CellFloat(CellBase):
 
 
 class CellModel(CellBase):
+    """
+    Use for parsing direct model association. Always set queryset;
+    default lookup argument - primary key.
+    Returns model instance.
+    """
     def __init__(self, queryset=None, lookup_arg='pk', *args, **kwargs):
         self.queryset = queryset
         if queryset is None:
