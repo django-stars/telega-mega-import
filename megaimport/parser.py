@@ -3,13 +3,14 @@ import time
 import os.path
 
 from optparse import make_option
-from cells import CellBase, EmptyCell
+from cells import CellBase, CellEmpty
 from collections import OrderedDict
 from openpyxl import load_workbook
 from django.core.management import BaseCommand, CommandError
 from django.utils.six import with_metaclass
 from django.utils import timezone
 from django.db import transaction
+from django.conf import settings
 
 from utils import UnicodeWriter
 
@@ -60,60 +61,16 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
             '--savestats',
             default=False,
             help='Do save statistics to file?'
-        )
+        ),
+        make_option(
+            '--google_spreadsheet',
+            default=False,
+            help='Are you parsing Google Spreadsheet directly? Gspread required')
     )
     help = """
        Parse data
     """
 
-    def __set_options(self, options):
-        for key, value in options.items():
-            if not key == 'sheet' and not isinstance(value, bool):
-                parsed_value = True if value == 'True' else False
-            else:
-                parsed_value = value
-            setattr(self, key, parsed_value)
-
-
-    def __check_and_load_file(self, args):
-        # We check, that file is exists and is valid and corresponding with options
-        filename = args[0]
-        self.filename = os.path.abspath(filename)
-        name, extension = os.path.splitext(filename)
-        if extension == '.csv':
-            self.is_csv = True
-        else:
-            self.is_csv = False
-        if not os.path.exists(self.filename):
-            raise CommandError('Can\'t find given file: {}'.format(self.filename))
-        if self.is_csv and hasattr(self, "sheet"):
-            raise CommandError('Can\'t parse sheet for csv file!')
-        elif not self.is_csv:
-            try:
-                self.work_book = load_workbook(filename, data_only=True)
-            except BaseException:
-                raise CommandError('Wrong file format. Supported are: .xlsx,.xlsm')
-
-    def __check_and_load_sheet(self):
-        # We will verify and load given sheet if it's exists or use first one.
-        sheet_name = self.sheet
-        if sheet_name is None:
-            # WARNING Explicitly take first sheet.
-            self.parsed_object = self.work_book.worksheets[0]
-            return
-
-        available_sheets = self.work_book.get_sheet_names()
-        if not sheet_name in available_sheets:
-            raise CommandError('Given sheet name `{}` not found. Existing: {} '.format(sheet_name, ", ".join(['`{}`'.format(x) for x in available_sheets])))
-        self.parsed_object = self.work_book.get_sheet_by_name(sheet_name)
-
-    def __initialize_progress_bar(self, total_rows):
-        try:
-            from progressbar import ProgressBar, Counter, Percentage, Bar
-            widgets = ['Processed: ', Counter(), ' ', Percentage(), ' ', Bar()]
-            return ProgressBar(widgets=widgets, maxval=total_rows).start()
-        except ImportError:
-            raise CommandError('No progressbar package found! Please, install it to track progress')
 
     def handle(self, *args, **options):
         self.start_time = time.time()
@@ -155,8 +112,12 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
         else:
             # Prepare progress bar data and generator for non-csv files
             row_offset = 1 if self.header else 0
-            total_rows = self.parsed_object.max_row
-            object_generator = self.parsed_object.iter_rows(row_offset=row_offset)
+            if self.google_spreadsheet:
+                total_rows = self.parsed_object.row_count
+                object_generator = self.__get_iterator_for_gsheet(offset=row_offset)
+            else:
+                total_rows = self.parsed_object.max_row
+                object_generator = self.parsed_object.iter_rows(row_offset=row_offset)
             total_rows -= 1
         return object_generator, total_rows
 
@@ -192,7 +153,7 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
         for index, cell in enumerate(row):
 
             option = self.fields.values()[index]
-            if isinstance(option, EmptyCell):
+            if isinstance(option, CellEmpty):
                 continue
             if self.is_csv:
                 value = cell
@@ -201,7 +162,12 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
 
             errors = option.validate(value)
             if errors:
-                coordinates = index if self.is_csv else cell.coordinate
+                if self.is_csv:
+                    coordinates = index
+                elif self.google_spreadsheet:
+                    coordinates = (cell.row, cell.col)
+                else:
+                    coordinates = cell.coordinate
                 if self.failfast:
                     raise CommandError('Errors in cell {}: {}'.format(coordinates, errors))
                 else:
@@ -258,18 +224,6 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
         }
         return result_dict
 
-    def __process_result(self, res):
-        status = res['status']
-        if status == 'Success':
-            self.parsed_successfully += 1
-        elif status == 'Failure':
-            self.parsed_unsuccessfully += 1
-            self.failed_rows += res['row']
-        elif status == 'Skipped':
-            self.skipped += 1
-        else:
-            raise CommandError('Unexpected result returned')
-
     def parse_statistics(self):
         time_spent = time.time() - self.start_time
         result_string = 'Done!\nSuccessfully parsed {} items.\nFailed to parse {} items.\nSkipped {} items.\nTime spent:{}'.format(
@@ -294,3 +248,94 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                     except BaseException as e:
                         print e
                         print r
+
+    def __get_iterator_for_gsheet(self, offset):
+        parsed_object = self.parsed_object
+        min_row = offset + 1
+        max_row = parsed_object.col_values(1).index('') +1 
+        max_col = parsed_object.row_values(1).index('') + 1
+        min_col = 1
+        for row in range(min_row, max_row):
+            yield tuple(parsed_object.cell(row, column)
+                        for column in range(min_col, max_col))
+
+    def __set_options(self, options):
+        for key, value in options.items():
+            if not key == 'sheet' and not isinstance(value, bool):
+                parsed_value = True if value == 'True' else False
+            else:
+                parsed_value = value
+            setattr(self, key, parsed_value)
+
+
+    def __check_and_load_file(self, args):
+        # We check, that file is exists and is valid and corresponding with options
+        filename = args[0]
+        if self.google_spreadsheet:
+            try:
+                import gspread
+            except ImportError:
+                raise CommandError('Please install gspread to parse Google Spreadsheet directly!')
+            try:
+                credentials = settings.CREDENTIALS
+            except AttributeError:
+                raise CommandError('Please set credential object in settings')
+            gs = gspread.authorize(credentials)
+            self.work_book = gs.open(filename)
+            self.is_csv = False
+        else:
+            self.filename = os.path.abspath(filename)
+            name, extension = os.path.splitext(filename)
+            if extension == '.csv':
+                self.is_csv = True
+            else:
+                self.is_csv = False
+            if not os.path.exists(self.filename):
+                raise CommandError('Can\'t find given file: {}'.format(self.filename))
+            if self.is_csv and hasattr(self, "sheet"):
+                raise CommandError('Can\'t parse sheet for csv file!')
+            elif not self.is_csv:
+                try:
+                    self.work_book = load_workbook(filename, data_only=True)
+                except BaseException:
+                    raise CommandError('Wrong file format. Supported are: .xlsx, .xls')
+
+    def __check_and_load_sheet(self):
+        # We will verify and load given sheet if it's exists or use first one.
+        sheet_name = self.sheet    
+        if sheet_name is None:
+            # WARNING Explicitly take first sheet.
+            if self.google_spreadsheet:
+                self.parsed_object = self.work_book.get_worksheet(0)
+            else:
+                self.parsed_object = self.work_book.worksheets[0]
+            return
+        elif self.google_spreadsheet:
+            self.parsed_object = self.work_book.get_worksheet(sheet_name)
+        else:
+            self.parsed_object = self.work_book.get_sheet_by_name(sheet_name)    
+
+        available_sheets = self.work_book.get_sheet_names()
+        if not sheet_name in available_sheets:
+            raise CommandError('Given sheet name `{}` not found. Existing: {} '.format(sheet_name, ", ".join(['`{}`'.format(x) for x in available_sheets])))
+        self.parsed_object = self.work_book.get_sheet_by_name(sheet_name)
+
+    def __initialize_progress_bar(self, total_rows):
+        try:
+            from progressbar import ProgressBar, Counter, Percentage, Bar
+            widgets = ['Processed: ', Counter(), ' ', Percentage(), ' ', Bar()]
+            return ProgressBar(widgets=widgets, maxval=total_rows).start()
+        except ImportError:
+            raise CommandError('No progressbar package found! Please, install it to track progress')
+
+    def __process_result(self, res):
+        status = res['status']
+        if status == 'Success':
+            self.parsed_successfully += 1
+        elif status == 'Failure':
+            self.parsed_unsuccessfully += 1
+            self.failed_rows += res['row']
+        elif status == 'Skipped':
+            self.skipped += 1
+        else:
+            raise CommandError('Unexpected result returned')

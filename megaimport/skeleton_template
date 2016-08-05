@@ -3,7 +3,7 @@ from megaimport.parser import BaseParser
 from django.core.management import BaseCommand
 
 
-class Command(BaseCommand, BaseParser):
+class Command(BaseParser):
     """
     New skeleton for file parser; please, describe
     fields and logic prior to running.
