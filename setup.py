@@ -23,11 +23,7 @@ setup(name='telega-megaimport',
       packages=['telega-megaimport'],
       install_requires=[
           "Django>=1.7"
-          "argparse",
-          "et-xmlfile",
-          "jdcal",
           "openpyxl",
-          "wsgiref"
       ],
       include_package_data=True,
       zip_safe=False)
