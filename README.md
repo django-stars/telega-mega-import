@@ -9,12 +9,12 @@ Every cell has next args:
 - required (boolean, if cell is required for row to work correctly)
 - default (arbitraty, if cell has some default value)
 Available cell types: 
-- CellEmpty (for cells you want to skip)
-- CellString (for string-containing cells; use arg 'strip' (boolean) to turn on/off strip on parse)
-- CellInteger
-- CellFloat
-- CellBoolean (will recognize ['yes', 'y', '+', '1', 'true'] as True, ['no', 'n', '-', '0', 'false'] as False)
-- CellModel (queryset should be declared, lookup_arg by default = 'pk', but can be changed. Returns model (one and only one!) responding by lookup)
+- EmptyColumn (for cells you want to skip)
+- StringColumn (for string-containing cells; use arg 'strip' (boolean) to turn on/off strip on parse)
+- IntegerColumn
+- FloatColumn
+- BooleanColumn (will recognize ['yes', 'y', '+', '1', 'true'] as True, ['no', 'n', '-', '0', 'false'] as False)
+- ModelColumn (queryset should be declared, lookup_arg by default = 'pk', but can be changed. Returns model (one and only one!) responding by lookup)
 
 In newly created parser:
 - Override method row(values) to process result of row-parsing

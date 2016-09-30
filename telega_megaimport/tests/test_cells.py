@@ -1,29 +1,29 @@
 from django.conf import settings
 from django.test import TestCase
 
-from telega_megaimport import cells
+from telega_megaimport import columns
 from telega_megaimport.tests.models import BasicModel
 
 
-class CellBaseTest(TestCase):
+class BaseColumnTest(TestCase):
     def setUp(self):
-        self.cell_1 = cells.CellBase(required=True)
+        self.cell_1 = columns.BaseColumn(required=True)
         self.cell_1.title = 'Title'
-        self.cell_2 = cells.CellBase(required=False)
+        self.cell_2 = columns.BaseColumn(required=False)
         self.cell_2.title = 'Title2'
 
     def test_misdeclaration(self):
         error = None
         try:
-            cells.CellBase(required=True, default='test')
+            columns.BaseColumn(required=True, default='test')
         except BaseException, e:
             error = e
         self.assertIsInstance(error, ValueError)
 
     def test_representation(self):
 
-        self.assertEqual(self.cell_1.__repr__(), '<CellBase: Title*>')
-        self.assertEqual(self.cell_2.__repr__(), '<CellBase: Title2 >')
+        self.assertEqual(self.cell_1.__repr__(), '<BaseColumn: Title*>')
+        self.assertEqual(self.cell_2.__repr__(), '<BaseColumn: Title2 >')
 
     def test_normalization(self):
         result = self.cell_1.normalize('test')
@@ -35,9 +35,9 @@ class CellBaseTest(TestCase):
         result = self.cell_1.validate('test')
         self.assertEqual(result, None)
 
-class CellEmptyTest(TestCase):
+class EmptyColumnTest(TestCase):
     def setUp(self):
-        self.cell = cells.CellEmpty()
+        self.cell = columns.EmptyColumn()
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('test'), None)
@@ -45,10 +45,10 @@ class CellEmptyTest(TestCase):
     def test_validate(self):
         self.assertEqual(self.cell.validate('test'), None)
 
-class CellStringTest(TestCase):
+class StringColumnTest(TestCase):
     def setUp(self):
-        self.cell = cells.CellString(required=False)
-        self.strip_cell = cells.CellString(required=False, strip=True)
+        self.cell = columns.StringColumn(required=False)
+        self.strip_cell = columns.StringColumn(required=False, strip=True)
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('  test     '), '  test     ')
@@ -59,9 +59,9 @@ class CellStringTest(TestCase):
         self.assertEqual(self.cell.validate(11), ['Not convertable to string value'])
 
 
-class CellIntegerTest(TestCase):
+class IntegerColumnTest(TestCase):
     def setUp(self):
-        self.cell = cells.CellInteger()
+        self.cell = columns.IntegerColumn()
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('111'), 111)
@@ -72,9 +72,9 @@ class CellIntegerTest(TestCase):
         self.assertEqual(self.cell.validate('ttt'), ['Not convertable to integer'])
 
 
-class CellBooleanTest(TestCase):
+class BooleanColumnTest(TestCase):
     def setUp(self):
-        self.cell = cells.CellBoolean()
+        self.cell = columns.BooleanColumn()
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('+'), True)
@@ -85,9 +85,9 @@ class CellBooleanTest(TestCase):
         self.assertEqual(self.cell.validate('test'), ['Value cannot be parsed as boolean'])
         self.assertEqual(self.cell.validate('+'), None)
 
-class CellFloatTest(TestCase):
+class FloatColumnTest(TestCase):
     def setUp(self):
-        self.cell = cells.CellFloat()
+        self.cell = columns.FloatColumn()
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('111.111'), 111.111)
@@ -97,17 +97,17 @@ class CellFloatTest(TestCase):
         self.assertEqual(self.cell.validate('111.111'), None)
         self.assertEqual(self.cell.validate('ttt'), ['Not convertable to float'])
 
-class CellModelTest(TestCase):
+class ModelColumnTest(TestCase):
     def setUp(self):
-        self.cell = cells.CellModel(queryset=BasicModel.objects.all())
-        self.cell_text = cells.CellModel(queryset=BasicModel.objects.all(), lookup_arg='text__contains')
+        self.cell = columns.ModelColumn(queryset=BasicModel.objects.all())
+        self.cell_text = columns.ModelColumn(queryset=BasicModel.objects.all(), lookup_arg='text__contains')
         self.model_1 = BasicModel.objects.create(text='tralala')
         self.model_2 = BasicModel.objects.create(text='trololo')
 
     def test_misdeclaration(self):
         error = None
         try:
-            cells.CellModel(required=True)
+            columns.ModelColumn(required=True)
         except BaseException, e:
             error = e
         self.assertIsInstance(error, ValueError)

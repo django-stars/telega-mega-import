@@ -4,7 +4,7 @@ import django
 import os.path
 
 from optparse import make_option
-from cells import CellBase, CellEmpty
+from columns import BaseColumn, EmptyColumn
 from collections import OrderedDict
 from openpyxl import load_workbook
 from django.core.management import BaseCommand, CommandError
@@ -22,7 +22,7 @@ class ParserMetaclass(type):
         attrs['fields'] = OrderedDict()
         built_fields = {}
         for field_name, obj in attrs.items():
-            if isinstance(obj, CellBase):
+            if isinstance(obj, BaseColumn):
                 field = attrs[field_name]
                 field.title = field_name
                 built_fields[field_name] = field
@@ -201,7 +201,7 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
         for index, cell in enumerate(row):
 
             option = self.fields.values()[index]
-            if isinstance(option, CellEmpty):
+            if isinstance(option, EmptyColumn):
                 continue
             if self.is_csv:
                 value = cell

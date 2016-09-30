@@ -74,8 +74,8 @@ class Command(BaseCommand):
         print 'Skeleton parser created at {}'.format(filepath)
 
     PARSER_SKELETON = """
-    from megaimport import cells
-    from megaimport.parser import BaseParser
+    from telega_megaimport import columns
+    from telega_megaimport.parser import BaseParser
     from django.core.management import BaseCommand
 
 
@@ -85,7 +85,7 @@ class Command(BaseCommand):
         fields and logic prior to running.
         WARNING: please, declare field in the same order
         they are declared in document you are wanting
-        to parse; use CellEmpty to skip cells.
+        to parse; use EmptyColumn to skip columns.
         Override row(values) method to process row parsing
         results, override attr_name_handler(value) to
         process exact field parsing results
