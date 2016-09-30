@@ -357,12 +357,9 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                 raise CommandError('Can\'t find given file: {}'.format(self.filename))
             if self.is_csv and self.sheet is not None:
                 raise CommandError('Can\'t parse sheet for csv file!')
-            elif not self.is_csv:
-                try:
-                    self.work_book = open_workbook(self.filename)
-                except BaseException as e:
-                    raise
-                    raise CommandError('Wrong file format. Supported are: .xlsx, .xls')
+            elif not self.is_csv:    
+                self.work_book = open_workbook(self.filename)
+                raise CommandError('Wrong file format. Supported are: .xlsx, .xls')
 
     def __check_and_load_sheet(self):
         # We will verify and load given sheet if it's exists or use first one.
