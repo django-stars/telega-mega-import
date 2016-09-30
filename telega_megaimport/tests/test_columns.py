@@ -45,6 +45,7 @@ class EmptyColumnTest(TestCase):
     def test_validate(self):
         self.assertEqual(self.cell.validate('test'), None)
 
+
 class StringColumnTest(TestCase):
     def setUp(self):
         self.cell = columns.StringColumn(required=False)
@@ -85,6 +86,7 @@ class BooleanColumnTest(TestCase):
         self.assertEqual(self.cell.validate('test'), ['Value cannot be parsed as boolean'])
         self.assertEqual(self.cell.validate('+'), None)
 
+
 class FloatColumnTest(TestCase):
     def setUp(self):
         self.cell = columns.FloatColumn()
@@ -96,6 +98,7 @@ class FloatColumnTest(TestCase):
     def test_validate(self):
         self.assertEqual(self.cell.validate('111.111'), None)
         self.assertEqual(self.cell.validate('ttt'), ['Not convertable to float'])
+
 
 class ModelColumnTest(TestCase):
     def setUp(self):
@@ -120,3 +123,24 @@ class ModelColumnTest(TestCase):
     def test_validate(self):
         self.assertEqual(self.cell.validate(self.model_1.pk), self.model_1)
         self.assertEqual(self.cell.validate(101010101), ['Object not found'])
+
+
+class ParserStatusColumnTest(TestCase):
+    def setUp(self):
+        self.cell = columns.ParserStatusColumn(ready_status='ready')
+
+    def test_misdeclaration(self):
+        error = None
+        try:
+            columns.ParserStatusColumn()
+        except BaseException, e:
+            error = e
+        self.assertIsInstance(error, ValueError)
+
+    def test_normalize(self):
+        self.assertEqual(self.cell.normalize('ready'), False)
+        self.assertEqual(self.cell.normalize('ttt'), True)
+
+    def test_validate(self):
+        self.assertEqual(self.cell.validate('ready'), None)
+        self.assertEqual(self.cell.validate(11), ['Cannot read data from cell'])
