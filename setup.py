@@ -20,7 +20,7 @@ setup(name='telega_megaimport',
         'Framework :: Django'
       ],
       keywords='import csv xls xlsx django',
-      url='http://github.com/django-stars/telega-megaimport',
+      url='http://github.com/django-stars/telega-mega-import',
       author='Andrew Liashchuk @ DjangoStars',
       author_email='andrew.luashchuk@djangostars.com',
       license='MIT',
