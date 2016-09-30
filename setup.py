@@ -12,7 +12,7 @@ setup(name='telega_megaimport',
       long_description=readme(),
       classifiers=[
         'Development Status :: 4 - Beta',
-        'License :: MIT License',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Code Generators',
         'Topic :: Database',
