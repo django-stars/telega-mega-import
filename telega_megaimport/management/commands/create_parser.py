@@ -107,7 +107,7 @@ class Command(BaseParser):
     they are declared in document you are wanting
     to parse; use EmptyColumn to skip columns.
     Override row(values) method to process row parsing
-    results, override attr_name_handler(value) to
+    results, override {attr_name}_handler(value) to
     process exact field parsing results
     \"\"\"
     pass

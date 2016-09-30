@@ -23,7 +23,7 @@ setup(name='telega_megaimport',
       packages=['telega_megaimport'],
       install_requires=[
           "Django>=1.7"
-          "openpyxl",
+          "xlrd",
       ],
       include_package_data=True,
       zip_safe=False)
