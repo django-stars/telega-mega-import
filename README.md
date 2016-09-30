@@ -33,7 +33,7 @@ Next options are supported:
 --google_spreadsheet - set 'True' if you are parsing google-spreadsheet directly (gspread module required) 
 
 Requirements:
-- Django > 1.7
+- Django >= 1.7
 - xlrd (for .xls parse)
 - gspread (Optional; for parsing Spreadsheets)
 - progressbar (Optional; for ProgressBar generation)
