@@ -26,7 +26,7 @@ setup(name='telega_megaimport',
       license='MIT',
       packages=['telega_megaimport'],
       install_requires=[
-          "Django>=1.7"
+          "Django>=1.7",
           "xlrd",
       ],
       include_package_data=True,
