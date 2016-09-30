@@ -40,8 +40,7 @@ class Command(BaseCommand):
         filepath = os.path.join(filepath, filename)
         fobj = open(filepath, 'wb')
 
-        with open('megaimport/skeleton_template', 'rb') as template_file:
-            content = template_file.read()
+        content = self.PARSER_SKELETON
 
         content = content.decode('utf-8')
         template = Template(content)
@@ -50,3 +49,23 @@ class Command(BaseCommand):
         fobj.write(content)
         fobj.close()
         print 'Skeleton parser created at {}'.format(filepath)
+
+    PARSER_SKELETON = """
+    from megaimport import cells
+    from megaimport.parser import BaseParser
+    from django.core.management import BaseCommand
+
+
+    class Command(BaseParser):
+        \"\"\"
+        New skeleton for file parser; please, describe
+        fields and logic prior to running.
+        WARNING: please, declare field in the same order
+        they are declared in document you are wanting
+        to parse; use CellEmpty to skip cells.
+        Override row(values) method to process row parsing
+        results, override attr_name_handler(value) to
+        process exact field parsing results
+        \"\"\"
+        pass
+    """

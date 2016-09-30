@@ -5,8 +5,8 @@ def readme():
     with open('README.md') as f:
         return f.read()
 
-setup(name='telega-megaimport',
-      version='0.4',
+setup(name='telega_megaimport',
+      version='0.4.1',
       description='Django app for creating parsers',
       long_description=readme(),
       classifiers=[
@@ -20,7 +20,7 @@ setup(name='telega-megaimport',
       author='Andrew Liashchuk',
       author_email='tengro@gmail.com',
       license='MIT',
-      packages=['telega-megaimport'],
+      packages=['telega_megaimport'],
       install_requires=[
           "Django>=1.7"
           "openpyxl",

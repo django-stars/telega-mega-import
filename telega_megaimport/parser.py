@@ -30,46 +30,89 @@ class ParserMetaclass(type):
 
 
 class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
-    args = '<input_file>'
-    option_list = BaseCommand.option_list+ (
-        make_option(
+    def __init__(self, *args, **kwargs):
+        super(BaseParser, self).__init__(*args, **kwargs)
+        # For compatibility with Django 1.7
+        if hasattr(self, 'option_list'):
+            args = '<input_file>'
+            self.option_list = self.option_list + (
+                make_option(
+                    '--header',
+                    default=True,
+                    help='If there is header in the file'
+                ),
+                make_option(
+                    '-s',
+                    '--sheet',
+                    help='Set exact sheet for xlsx file'
+                ),
+                make_option(
+                    '--progress',
+                    default=False,
+                    help='Show progress bar? (progressbar package required)'
+                ),
+                make_option(
+                    '--failfast',
+                    default=False,
+                    help='Break parsing on first error-case?'
+                ),
+                make_option(
+                    '--dryrun',
+                    default=False,
+                    help='Do parsing without DB changes?'
+                ),
+                make_option(
+                    '--savestats',
+                    default=False,
+                    help='Do save statistics to file?'
+                ),
+                make_option(
+                    '--google_spreadsheet',
+                    default=False,
+                    help='Are you parsing Google Spreadsheet directly? Gspread required')
+            )
+    help = """
+       Parse data
+    """
+    def add_arguments(self, parser):
+        # Positional arguments
+        parser.add_argument('input_file', nargs='?', type=str)
+
+        # Named (optional) arguments
+        parser.add_argument(
             '--header',
             default=True,
-            help='If there is header in the file'
-        ),
-        make_option(
-            '-s',
+            help='Is there header in file?',
+        )
+        parser.add_argument(
             '--sheet',
-            help='Set exact sheet for xlsx file'
-        ),
-        make_option(
+            default=None,
+            help='Set exact sheet for xlsx file',
+        )
+        parser.add_argument(
             '--progress',
             default=False,
             help='Show progress bar? (progressbar package required)'
         ),
-        make_option(
+        parser.add_argument(
             '--failfast',
             default=False,
             help='Break parsing on first error-case?'
         ),
-        make_option(
+        parser.add_argument(
             '--dryrun',
             default=False,
             help='Do parsing without DB changes?'
         ),
-        make_option(
+        parser.add_argument(
             '--savestats',
             default=False,
             help='Do save statistics to file?'
         ),
-        make_option(
+        parser.add_argument(
             '--google_spreadsheet',
             default=False,
             help='Are you parsing Google Spreadsheet directly? Gspread required')
-    )
-    help = """
-       Parse data
-    """
 
 
     def handle(self, *args, **options):
@@ -302,7 +345,7 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
 
     def __check_and_load_sheet(self):
         # We will verify and load given sheet if it's exists or use first one.
-        sheet_name = self.sheet    
+        sheet_name = self.sheet
         if sheet_name is None:
             # WARNING Explicitly take first sheet.
             if self.google_spreadsheet:

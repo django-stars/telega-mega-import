@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.test import TestCase
 
-from megaimport import cells
-from megaimport.tests.models import BasicModel
+from telega_megaimport import cells
+from telega_megaimport.tests.models import BasicModel
 
 
 class CellBaseTest(TestCase):

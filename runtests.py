@@ -7,8 +7,8 @@ import django
 
 DEFAULT_SETTINGS = dict(
     INSTALLED_APPS=(
-        'megaimport',
-        'megaimport.tests',
+        'telega_megaimport',
+        'telega_megaimport.tests',
     ),
     DATABASES={
         "default": {
@@ -34,7 +34,7 @@ def runtests():
     try:
         from django.test.runner import DiscoverRunner
         runner_class = DiscoverRunner
-        test_args = ['megaimport.tests']
+        test_args = ['telega_megaimport.tests']
     except ImportError:
         from django.test.simple import DjangoTestSuiteRunner
         runner_class = DjangoTestSuiteRunner
