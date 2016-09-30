@@ -16,7 +16,17 @@ DEFAULT_SETTINGS = dict(
         }
     },
     SILENCED_SYSTEM_CHECKS=["1_7.W001"],
-    BASE_DIR=os.path.dirname(os.path.dirname(__file__))
+    BASE_DIR=os.path.dirname(os.path.dirname(__file__)),
+    TEMPLATES=[
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [],
+            'APP_DIRS': True,
+            'OPTIONS': {
+                # ... some options here ...
+            },
+        },
+    ]
 )
 
 

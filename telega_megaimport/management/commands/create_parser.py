@@ -1,5 +1,7 @@
 import os
+import django
 
+from distutils.version import StrictVersion
 from optparse import make_option
 from django.conf import settings
 from django.template import Template, Context
@@ -12,18 +14,39 @@ else:
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option(
+    def __init__(self, *args, **kwargs):
+        # We keep this for backwards-compatibility with 1.7
+        if StrictVersion(django.get_version()) < StrictVersion('1.8'):
+            newoptions = tuple(list(self.option_list) + [
+                    make_option(
+                        '--path',
+                        default='',
+                        help='Where to create new parser skeleton'
+                    ),
+                    make_option(
+                        '--filename',
+                        default=NEW_PARSER_NAME,
+                        help='How to name new parser skeleton file'
+                    ),
+                ]
+            )
+            self.option_list = newoptions
+        super(Command, self).__init__(*args, **kwargs)
+
+
+    def add_arguments(self, parser):
+        # Named (optional) arguments
+        parser.add_argument(
             '--path',
             default='',
             help='Where to create new parser skeleton'
-        ),
-        make_option(
+        )
+        parser.add_argument(
             '--filename',
             default=NEW_PARSER_NAME,
             help='How to name new parser skeleton file'
-        ),
-    )
+        )
+
     help = """
        Create skeleton for further parser declaring.
        --path: specify path, where parser skeleton should be created

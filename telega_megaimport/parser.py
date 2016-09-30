@@ -1,5 +1,6 @@
 import csv
 import time
+import django
 import os.path
 
 from optparse import make_option
@@ -11,6 +12,7 @@ from django.utils.six import with_metaclass
 from django.utils import timezone
 from django.db import transaction
 from django.conf import settings
+from distutils.version import StrictVersion
 
 from utils import UnicodeWriter
 
@@ -33,9 +35,9 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
     def __init__(self, *args, **kwargs):
         super(BaseParser, self).__init__(*args, **kwargs)
         # For compatibility with Django 1.7
-        if hasattr(self, 'option_list'):
-            args = '<input_file>'
-            self.option_list = self.option_list + (
+        if StrictVersion(django.get_version()) < StrictVersion('1.8'):
+            self.args = '<input_file>'
+            self.option_list = list(self.option_list) + list(
                 make_option(
                     '--header',
                     default=True,
@@ -71,9 +73,11 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                     default=False,
                     help='Are you parsing Google Spreadsheet directly? Gspread required')
             )
+
     help = """
        Parse data
     """
+
     def add_arguments(self, parser):
         # Positional arguments
         parser.add_argument('input_file', nargs='?', type=str)
@@ -93,26 +97,27 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
             '--progress',
             default=False,
             help='Show progress bar? (progressbar package required)'
-        ),
+        )
         parser.add_argument(
             '--failfast',
             default=False,
             help='Break parsing on first error-case?'
-        ),
+        )
         parser.add_argument(
             '--dryrun',
             default=False,
             help='Do parsing without DB changes?'
-        ),
+        )
         parser.add_argument(
             '--savestats',
             default=False,
             help='Do save statistics to file?'
-        ),
+        )
         parser.add_argument(
             '--google_spreadsheet',
             default=False,
-            help='Are you parsing Google Spreadsheet directly? Gspread required')
+            help='Are you parsing Google Spreadsheet directly? Gspread required'
+        )
 
 
     def handle(self, *args, **options):
