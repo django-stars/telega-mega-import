@@ -5,6 +5,7 @@ def readme():
     with open('README.md') as f:
         return f.read()
 
+
 setup(name='telega_megaimport',
       version='0.4.1',
       description='Django app for creating parsers',
@@ -13,7 +14,10 @@ setup(name='telega_megaimport',
         'Development Status :: 4 - Beta',
         'License :: MIT License',
         'Programming Language :: Python :: 2.7',
-        'Topic :: Text Processing',
+        'Topic :: Software Development :: Code Generators',
+        'Topic :: Database',
+        'Topic :: Office/Business',
+        'Framework :: Django'
       ],
       keywords='import csv xls xlsx django',
       url='http://github.com/django-stars/telega-megaimport',
