@@ -85,6 +85,7 @@ class BooleanColumnTest(TestCase):
         self.assertEqual(self.cell.validate('test'), ['Value cannot be parsed as boolean'])
         self.assertEqual(self.cell.validate('+'), None)
 
+
 class FloatColumnTest(TestCase):
     def setUp(self):
         self.cell = columns.FloatColumn()
@@ -96,6 +97,7 @@ class FloatColumnTest(TestCase):
     def test_validate(self):
         self.assertEqual(self.cell.validate('111.111'), None)
         self.assertEqual(self.cell.validate('ttt'), ['Not convertable to float'])
+
 
 class ModelColumnTest(TestCase):
     def setUp(self):
