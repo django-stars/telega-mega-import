@@ -5,6 +5,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.core.management import call_command
 
+
 class ParserCreationTest(TestCase):
     def setUp(self):
         if hasattr(settings, "PROJECT_DIR"):
@@ -34,8 +35,8 @@ class ParserCreationTest(TestCase):
 
 
     def test_correct_options_work(self):
-        call_command('create_parser', path=self.filepath, filename=self.parser_name)
-        path = os.path.join(self.filepath, self.parser_name + '.py')
+        call_command('create_parser', appdir=self.filepath, filename=self.parser_name)
+        path = os.path.join(self.filepath, 'management/commands/' + self.parser_name + '.py')
         parser_exists = os.path.exists(path)
         self.assertEqual(parser_exists, True)
         os.remove(path)

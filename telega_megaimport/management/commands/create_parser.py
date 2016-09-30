@@ -5,7 +5,7 @@ from distutils.version import StrictVersion
 from optparse import make_option
 from django.conf import settings
 from django.template import Template, Context
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 if hasattr(settings, 'NEW_PARSER_NAME'):
     NEW_PARSER_NAME = settings.NEW_PARSER_NAME
@@ -19,9 +19,9 @@ class Command(BaseCommand):
         if StrictVersion(django.get_version()) < StrictVersion('1.8'):
             newoptions = tuple(list(self.option_list) + [
                     make_option(
-                        '--path',
+                        '--appdir',
                         default='',
-                        help='Where to create new parser skeleton'
+                        help='Name of directory, where parser should be created'
                     ),
                     make_option(
                         '--filename',
@@ -33,13 +33,12 @@ class Command(BaseCommand):
             self.option_list = newoptions
         super(Command, self).__init__(*args, **kwargs)
 
-
     def add_arguments(self, parser):
         # Named (optional) arguments
         parser.add_argument(
-            '--path',
+            '--appdir',
             default='',
-            help='Where to create new parser skeleton'
+            help='Name of directory, where parser should be created'
         )
         parser.add_argument(
             '--filename',
@@ -49,18 +48,16 @@ class Command(BaseCommand):
 
     help = """
        Create skeleton for further parser declaring.
-       --path: specify path, where parser skeleton should be created
+       --appdir: specify directory of app, where parser skeleton should be created
        --filename: specify parser name
     """
 
     def handle(self, *args, **options):
-        path = options.get('path')
+        path = options.get('appdir')
         filename = options.get('filename') + '.py'
-        if hasattr(settings, "PROJECT_DIR"):
-            filepath = os.path.join(settings.PROJECT_DIR, path)
-        else:
-            filepath = os.path.join(settings.BASE_DIR, path)
-        filepath = os.path.join(filepath, filename)
+        new_path = self.management_path(path)
+        filepath = os.path.join(new_path, filename)
+
         fobj = open(filepath, 'wb')
 
         content = self.PARSER_SKELETON
@@ -73,22 +70,45 @@ class Command(BaseCommand):
         fobj.close()
         print 'Skeleton parser created at {}'.format(filepath)
 
-    PARSER_SKELETON = """
-    from telega_megaimport import columns
-    from telega_megaimport.parser import BaseParser
-    from django.core.management import BaseCommand
+    def management_path(self, path):
+        if path == '':
+            quick_terminate = True
+        else:
+            quick_terminate = False
+        if hasattr(settings, "PROJECT_DIR"):
+            path = os.path.join(settings.PROJECT_DIR, path)
+        else:
+            path = os.path.join(settings.BASE_DIR, path)
+        if quick_terminate:
+            return path
+        if not os.path.exists(path):
+            raise CommandError('No such app directory was found')
+        path = os.path.join(path, 'management')
+        if not os.path.exists(path):
+            os.makedirs(path)
+            file = open(os.path.join(path, '__init__.py'), 'w')
+            file.close()
+        path = os.path.join(path, 'commands')
+        if not os.path.exists(path):
+            os.makedirs(path)
+            file = open(os.path.join(path, '__init__.py'), 'w')
+            file.close()
+        return path
+
+    PARSER_SKELETON = """from telega_megaimport import columns
+from telega_megaimport.parser import BaseParser
 
 
-    class Command(BaseParser):
-        \"\"\"
-        New skeleton for file parser; please, describe
-        fields and logic prior to running.
-        WARNING: please, declare field in the same order
-        they are declared in document you are wanting
-        to parse; use EmptyColumn to skip columns.
-        Override row(values) method to process row parsing
-        results, override attr_name_handler(value) to
-        process exact field parsing results
-        \"\"\"
-        pass
-    """
+class Command(BaseParser):
+    \"\"\"
+    New skeleton for file parser; please, describe
+    fields and logic prior to running.
+    WARNING: please, declare field in the same order
+    they are declared in document you are wanting
+    to parse; use EmptyColumn to skip columns.
+    Override row(values) method to process row parsing
+    results, override attr_name_handler(value) to
+    process exact field parsing results
+    \"\"\"
+    pass
+"""
