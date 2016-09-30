@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='telega_megaimport',
-      version='0.4.1',
+      version='0.5',
       description='Django app for creating parsers',
       long_description=readme(),
       classifiers=[
@@ -21,8 +21,8 @@ setup(name='telega_megaimport',
       ],
       keywords='import csv xls xlsx django',
       url='http://github.com/django-stars/telega-megaimport',
-      author='Andrew Liashchuk',
-      author_email='tengro@gmail.com',
+      author='Andrew Liashchuk @ DjangoStars',
+      author_email='andrew.luashchuk@djangostars.com',
       license='MIT',
       packages=['telega_megaimport'],
       install_requires=[
