@@ -21,6 +21,7 @@ Available cell types:
 - FloatColumn
 - BooleanColumn (will recognize ['yes', 'y', '+', '1', 'true'] as True, ['no', 'n', '-', '0', 'false'] as False)
 - ModelColumn (queryset should be declared, lookup_arg by default = 'pk', but can be changed. Returns model (one and only one!) responding by lookup)
+- ParserStatusColumn (use this field to recognize rows, not ready to be parsed; ready_status should be declared)
 
 In newly created parser:
 - Override method row(values) to process result of row-parsing

@@ -177,3 +177,26 @@ class ModelColumn(BaseColumn):
             return error
         else:
             return None
+
+
+class ParserStatusColumn(BaseColumn):
+    """
+    Use for specifying data about parsing or skipping entire row
+    """
+    def __init__(self, ready_status=None, *args, **kwargs):
+        self.ready_status = ready_status
+        if ready_status is None:
+            raise ValueError('Ready status value is required!')
+        super(ParserStatusColumn, self).__init__(*args, **kwargs)
+
+    def normalize(self, value):
+        return value != self.ready_status
+
+    def validate(self, value):
+        error = super(ParserStatusColumn, self).validate(value) or []
+        if not isinstance(value, basestring):
+            error += ['Cannot read data from cell']
+        if error:
+            return error
+        else:
+            return None

@@ -4,7 +4,7 @@ import django
 import os.path
 
 from optparse import make_option
-from columns import BaseColumn, EmptyColumn
+from columns import BaseColumn, EmptyColumn, ParserStatusColumn
 from collections import OrderedDict
 from xlrd import open_workbook
 from django.core.management import BaseCommand, CommandError
@@ -228,7 +228,8 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                     row_errors.append({coordinates: errors})
                 continue
             value = option.normalize(value)
-
+            if isinstance(option, ParserStatusColumn) and value:
+                return None
             try:
                 handler = getattr(self, '{}_handler'.format(option.title))
                 value = handler(value)
