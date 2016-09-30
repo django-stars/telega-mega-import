@@ -2,6 +2,10 @@
 
 Framework for parsing CSV, XSL, Google Spreadsheets into Django.
 
+Install package with pip install telega_megaimport
+
+Add 'telega_megaimport' to your project's INSTALLED_APPS
+
 To create new parser, use ./manage.py create_parser command
 Specify --appdir (directory of app, where parser should be created) and --filename (name of parser)
 
