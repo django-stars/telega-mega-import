@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps
 
 
 class BaseColumn(object):
@@ -29,7 +30,7 @@ class BaseColumn(object):
         )
 
     def normalize(self, value):
-        return value
+        return value if value else None
 
     def validate(self, value):
         # Return None if all is OK,
@@ -60,7 +61,7 @@ class StringColumn(BaseColumn):
         super(StringColumn, self).__init__(*args, **kwargs)
 
     def normalize(self, value):
-        return value.strip() if self.strip and value else value
+        return value.strip() if self.strip and value else None
 
     def validate(self, value):
         error = super(StringColumn, self).validate(value) or []
@@ -110,7 +111,7 @@ class IntegerColumn(BaseColumn):
         try:
             return int(value)
         except ValueError:
-            return value
+            return None
 
     def validate(self, value):
         error = super(IntegerColumn, self).validate(value) or []
@@ -134,7 +135,7 @@ class FloatColumn(BaseColumn):
         try:
             return float(value)
         except ValueError:
-            return value
+            return None
 
     def validate(self, value):
         error = super(FloatColumn, self).validate(value) or []
@@ -165,7 +166,7 @@ class ModelColumn(BaseColumn):
         try:
             return self.queryset.get(**{self.lookup_arg: value})
         except ObjectDoesNotExist:
-            return value
+            return None
 
     def validate(self, value):
         error = super(ModelColumn, self).validate(value) or []
@@ -177,3 +178,85 @@ class ModelColumn(BaseColumn):
             return error
         else:
             return None
+
+
+class ModelTypeColumn(BaseColumn):
+    """
+    Use for parsing direct model association. Always set queryset;
+    default lookup argument - primary key.
+    Returns model instance.
+    """
+    def __init__(self, applabel=None, *args, **kwargs):
+        self.applabel = applabel
+        self._unique_models = None
+        self._ambiguous_models = None
+        super(ModelTypeColumn, self).__init__(*args, **kwargs)
+
+    def normalize(self, value):
+        if self.applabel:
+            try:
+                return apps.get_model(self.applabel, value)
+            except LookupError:
+                return None
+        else:
+            try:
+                return self._get_model(value)
+            except LookupError:
+                return None
+            except ValueError:
+                return None
+
+    def validate(self, value):
+        error = super(ModelTypeColumn, self).validate(value) or []
+        if self.applabel:
+            try:
+                return apps.get_model(self.applabel, value)
+            except LookupError:
+                error += ['Model not found']
+        else:
+            try:
+                return self._get_model(value)
+            except LookupError:
+                error += ['Model not found']
+            except ValueError:
+                error += ['Ambigious model, specify applabel']
+        if error:
+            return error
+        else:
+            return None
+
+    def _get_model(self, value):
+        value = value.lower()
+
+        if self._unique_models is None:
+            self._populate()
+
+        if value in self._ambiguous_models:
+            raise ValueError('%s is a model in more than one app. ')
+
+        model = self._unique_models.get(value)
+        if model is None:
+            raise LookupError
+        return model
+
+    def _populate(self):
+        '''
+        Cache models for faster self._get_model.
+        '''
+        unique_models = {}
+        ambiguous_models = []
+
+        all_models = apps.all_models
+
+        for app_model in all_models.values():
+            for name, model in app_model.items():
+                if name not in unique_models:
+                    unique_models[name] = model
+                else:
+                    ambiguous_models.append(name)
+
+        for name in ambiguous_models:
+            unique_models.pop(name, None)
+
+        self._ambiguous_models = ambiguous_models
+        self._unique_models = unique_models
