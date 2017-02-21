@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def readme():
@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='telega_megaimport',
-      version='0.5.3',
+      version='0.5.4',
       description='Django app for creating parsers',
       long_description=readme(),
       classifiers=[
@@ -24,7 +24,7 @@ setup(name='telega_megaimport',
       author='Andrew Liashchuk @ DjangoStars',
       author_email='andrew.luashchuk@djangostars.com',
       license='MIT',
-      packages=['telega_megaimport'],
+      packages=find_packages(),
       install_requires=[
           "Django>=1.7",
           "xlrd",
