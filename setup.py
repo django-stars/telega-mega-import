@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='telega_megaimport',
-      version='0.5.4',
+      version='0.5.5',
       description='Django app for creating parsers',
       long_description=readme(),
       classifiers=[

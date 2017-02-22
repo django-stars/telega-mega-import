@@ -174,6 +174,8 @@ class ModelColumn(BaseColumn):
             return self.queryset.get(**{self.lookup_arg: value})
         except ObjectDoesNotExist:
             error += ['Object not found']
+        except ValueError:
+            error += ['Invalid lookup']
         if error:
             return error
         else:
