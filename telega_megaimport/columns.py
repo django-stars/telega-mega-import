@@ -61,7 +61,11 @@ class StringColumn(BaseColumn):
         super(StringColumn, self).__init__(*args, **kwargs)
 
     def normalize(self, value):
-        return value.strip() if self.strip and value else None
+        if self.strip() and value:
+            return value.strip()
+        elif value:
+            return value
+        return None
 
     def validate(self, value):
         error = super(StringColumn, self).validate(value) or []
@@ -171,7 +175,7 @@ class ModelColumn(BaseColumn):
     def validate(self, value):
         error = super(ModelColumn, self).validate(value) or []
         try:
-            return self.queryset.get(**{self.lookup_arg: value})
+            self.queryset.get(**{self.lookup_arg: value})
         except ObjectDoesNotExist:
             error += ['Object not found']
         except ValueError:
@@ -212,7 +216,7 @@ class ModelTypeColumn(BaseColumn):
         error = super(ModelTypeColumn, self).validate(value) or []
         if self.applabel:
             try:
-                return apps.get_model(self.applabel, value)
+                apps.get_model(self.applabel, value)
             except LookupError:
                 error += ['Model not found']
         else:

@@ -402,3 +402,4 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
             self.skipped += 1
         else:
             raise CommandError('Unexpected result returned')
+        print res['message']
