@@ -326,7 +326,12 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
     def __set_options(self, options):
         for key, value in options.items():
             if not key == 'sheet' and not isinstance(value, bool):
-                parsed_value = True if value == 'True' else False
+                if value == 'True':
+                    parsed_value = True
+                elif value == 'False':
+                    parsed_value = False
+                else:
+                    parsed_value = value
             else:
                 parsed_value = value
             setattr(self, key, parsed_value)
