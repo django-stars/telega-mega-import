@@ -61,7 +61,7 @@ class StringColumn(BaseColumn):
         super(StringColumn, self).__init__(*args, **kwargs)
 
     def normalize(self, value):
-        if self.strip() and value:
+        if self.strip and value:
             return value.strip()
         elif value:
             return value
