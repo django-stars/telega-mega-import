@@ -65,7 +65,7 @@ class IntegerColumnTest(TestCase):
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('111'), 111)
-        self.assertEqual(self.cell.normalize('ttt'), 'ttt')
+        self.assertEqual(self.cell.normalize('ttt'), None)
 
     def test_validate(self):
         self.assertEqual(self.cell.validate('111'), None)
@@ -92,7 +92,7 @@ class FloatColumnTest(TestCase):
 
     def test_normalize(self):
         self.assertEqual(self.cell.normalize('111.111'), 111.111)
-        self.assertEqual(self.cell.normalize('ttt'), 'ttt')
+        self.assertEqual(self.cell.normalize('ttt'), None)
 
     def test_validate(self):
         self.assertEqual(self.cell.validate('111.111'), None)
@@ -117,8 +117,8 @@ class ModelColumnTest(TestCase):
     def test_normalize(self):
         self.assertEqual(self.cell.normalize(self.model_1.pk), self.model_1)
         self.assertEqual(self.cell_text.normalize(self.model_2.text), self.model_2)
-        self.assertEqual(self.cell.normalize(1010101), 1010101)
+        self.assertEqual(self.cell.normalize(1010101), None)
 
     def test_validate(self):
-        self.assertEqual(self.cell.validate(self.model_1.pk), self.model_1)
+        self.assertEqual(self.cell.validate(self.model_1.pk), None)
         self.assertEqual(self.cell.validate(101010101), ['Object not found'])
