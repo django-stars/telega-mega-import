@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
 
 class TestModel(models.Model):
@@ -13,4 +12,4 @@ class TestModel(models.Model):
 
 
 class BasicModel(TestModel):
-	text = models.CharField(max_length=100)
+    text = models.CharField(max_length=100)

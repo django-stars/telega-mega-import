@@ -1,4 +1,5 @@
-from django.conf import settings
+from datetime import datetime
+
 from django.test import TestCase
 
 from telega_megaimport import columns
@@ -35,6 +36,7 @@ class BaseColumnTest(TestCase):
         result = self.cell_1.validate('test')
         self.assertEqual(result, None)
 
+
 class EmptyColumnTest(TestCase):
     def setUp(self):
         self.cell = columns.EmptyColumn()
@@ -44,6 +46,7 @@ class EmptyColumnTest(TestCase):
 
     def test_validate(self):
         self.assertEqual(self.cell.validate('test'), None)
+
 
 class StringColumnTest(TestCase):
     def setUp(self):
@@ -97,6 +100,23 @@ class FloatColumnTest(TestCase):
     def test_validate(self):
         self.assertEqual(self.cell.validate('111.111'), None)
         self.assertEqual(self.cell.validate('ttt'), ['Not convertable to float'])
+
+
+class DateTimeColumn(TestCase):
+    def setUp(self):
+        self.cell = columns.DateTimeColumn(dayfirst=True)
+        self.fuzzy_cell = columns.DateTimeColumn(dayfirst=True, fuzzy=True)
+
+    def test_normalize(self):
+        fool_day = datetime(day=1, year=2017, month=4)
+        self.assertEqual(self.cell.normalize('1/4/2017'), fool_day)
+        self.assertRaises(ValueError, self.cell.normalize, 'aaa')
+        self.assertEqual(self.fuzzy_cell.normalize('Aprils fools day is 1/4/2017'), fool_day)
+
+    def test_validate(self):
+        self.assertEqual(self.cell.validate('1/4/2017'), None)
+        self.assertEqual(self.cell.validate('ttt'), ['Unknown string format'])
+
 
 
 class ModelColumnTest(TestCase):
