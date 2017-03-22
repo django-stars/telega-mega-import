@@ -26,8 +26,9 @@ setup(name='telega_megaimport',
       license='MIT',
       packages=find_packages(),
       install_requires=[
-          "Django>=1.7",
-          "xlrd",
+          'Django>=1.7',
+          'xlrd',
+          'python-dateutil'
       ],
       include_package_data=True,
       zip_safe=False)

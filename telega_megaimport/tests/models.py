@@ -13,4 +13,4 @@ class TestModel(models.Model):
 
 
 class BasicModel(TestModel):
-	text = models.CharField(max_length=100)
+    text = models.CharField(max_length=100)

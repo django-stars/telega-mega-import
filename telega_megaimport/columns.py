@@ -1,3 +1,5 @@
+from dateutil import parser
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.apps import apps
 
@@ -132,7 +134,7 @@ class IntegerColumn(BaseColumn):
 class FloatColumn(BaseColumn):
     """
     Use for parsing float values;
-    Retunrns float
+    Returns float
     """
 
     def normalize(self, value):
@@ -186,11 +188,41 @@ class ModelColumn(BaseColumn):
             return None
 
 
+class DateTimeColumn(BaseColumn):
+    """
+        Used for parsing date time values;
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.parserinfo = kwargs.pop('parserinfo', None)
+        self.ignoretz = kwargs.pop('ignoretz', False)
+        self.tzinfos = kwargs.pop('tzinfos', None)
+        self.dayfirst = kwargs.pop('dayfirst', None)
+        self.yearfirst = kwargs.pop('yearfirst', None)
+        self.fuzzy = kwargs.pop('fuzzy', None)
+        super(DateTimeColumn, self).__init__(*args, **kwargs)
+
+    def normalize(self, value):
+        dt = parser.parse(
+            value, parserinfo=self.parserinfo, ignoretz=self.ignoretz, tzinfos=self.tzinfos, dayfirst=self.dayfirst,
+            yearfirst=self.yearfirst, fuzzy=self.fuzzy
+        )
+        return dt
+
+    def validate(self, value):
+        errors = super(DateTimeColumn, self).validate(value) or []
+        try:
+            self.normalize(value)
+        except (OverflowError, ValueError) as e:
+            errors.append(e.message) if errors is not None else [e.message]
+        return errors if errors else None
+
+
 class ModelTypeColumn(BaseColumn):
     """
-    Use for parsing direct model association. Always set queryset;
-    default lookup argument - primary key.
-    Returns model instance.
+        Use for parsing direct model association. Always set queryset;
+        default lookup argument - primary key.
+        Returns model instance.
     """
     def __init__(self, applabel=None, *args, **kwargs):
         self.applabel = applabel
@@ -246,9 +278,9 @@ class ModelTypeColumn(BaseColumn):
         return model
 
     def _populate(self):
-        '''
-        Cache models for faster self._get_model.
-        '''
+        """
+            Cache models for faster self._get_model.
+        """
         unique_models = {}
         ambiguous_models = []
 
