@@ -2,14 +2,18 @@
 
 Framework for parsing CSV, XSL, Google Spreadsheets into Django.
 
-Install package with pip install telega_megaimport
+
+Install package with `pip install telega_megaimport`
+
 
 Add 'telega_megaimport' to your project's INSTALLED_APPS
 
 To create new parser, use ./manage.py create_parser command
 Specify --appdir (directory of app, where parser should be created) and --filename (name of parser)
 
+
 Inside new parser, declare cells as they go in parsed document (exact order matters!)
+
 
 Every cell has next args:
 - required (boolean, if cell is required for row to work correctly)
@@ -21,10 +25,16 @@ Available cell types:
 - FloatColumn
 - BooleanColumn (will recognize ['yes', 'y', '+', '1', 'true'] as True, ['no', 'n', '-', '0', 'false'] as False)
 - ModelColumn (queryset should be declared, lookup_arg by default = 'pk', but can be changed. Returns model (one and only one!) responding by lookup)
+- ModelTypeColumn (app_label should be declared if model is ambigious)
+- StatusColumn (list or tuple of `parse_ready_statuses` shpuld be declared. Row will be parsed only if all StatusColumns are parse-ready)
+
+***
 
 In newly created parser:
 - Override method row(values) to process result of row-parsing
 - Override method *attr_name*_handler to prosess result of single cell parsing
+
+***
 
 To run new parser, use ./manage.py <parser_name> [way_to_file]
 Next options are supported:

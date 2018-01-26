@@ -4,7 +4,7 @@ import django
 import os.path
 
 from optparse import make_option
-from columns import BaseColumn, EmptyColumn
+from columns import BaseColumn, EmptyColumn, StatusColumn
 from collections import OrderedDict
 from xlrd import open_workbook
 from django.core.management import BaseCommand, CommandError
@@ -204,6 +204,7 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
         row_values = []
         row_errors = []
         row_values = dict()
+        row_preparation = dict()
         for index, cell in enumerate(row):
 
             option = self.fields.values()[index]
@@ -213,7 +214,17 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                 value = cell
             else:
                 value = cell.value
+            row_preparation[option] = value
 
+        # Check status column first-hand. Just in case, not to parse broken & marked lines
+        status_keys = filter(lambda x: isinstance(x, StatusColumn), row_preparation.keys())
+        for item in status_keys:
+            check_value = row_preparation[item]
+            if not item.normalize(check_value):
+                return self.skip('Row {} skipped due to status column'.format(row_number))
+
+        # Parse everything required
+        for option, value in row_preparation.items():
             errors = option.validate(value)
             if errors:
                 if self.is_csv:
@@ -229,25 +240,18 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
                 continue
             value = option.normalize(value)
 
-            try:
+            # If handler is defined, it should be activated
+            if hasattr(self, '{}_handler'.format(option.title)):
                 handler = getattr(self, '{}_handler'.format(option.title))
                 value = handler(value)
-            except AttributeError:
-                # In case we do not define handler at all.
-                pass
             row_values[option.title] = value
 
         if row_errors:
             print "=" * 80
             print row_errors
             print "=" * 80
-        try:
+        if hasattr(self, 'row'):
             row_handler = getattr(self, 'row')
-        except AttributeError:
-            # We do not perform any action with row itself.
-            # We need to log, that we are skip row process for row, bla, bla.
-            pass
-        else:
             try:
                 res = row_handler(row_values)
                 if res is None:
@@ -255,6 +259,8 @@ class BaseParser(with_metaclass(ParserMetaclass, BaseCommand)):
             except BaseException, e:
                 res = self.failure('Error during parsing row {}: {}'.format(row_number, e), row)
             self.__process_result(res)
+        else:
+            raise CommandError('Row processing command must be specified')
 
     def success(self, message):
         result_dict = {

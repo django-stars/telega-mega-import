@@ -298,3 +298,18 @@ class ModelTypeColumn(BaseColumn):
 
         self._ambiguous_models = ambiguous_models
         self._unique_models = unique_models
+
+
+class StatusColumn(StringColumn):
+    """
+    Use for marking 
+    """
+    def __init__(self, parse_ready_statuses=None, *args, **kwargs):
+        if not (isinstance(parse_ready_statuses, list) or isinstance(parse_ready_statuses)):
+            raise ValueError('Please, set list or tuple of appropriate values')
+        self.parse_ready_statuses = parse_ready_statuses
+        super(ModelColumn, self).__init__(*args, **kwargs)
+
+    def normalize(self, value):
+        value = super(StatusColumn, self).normalize(value)
+        return value in self.parse_ready_statuses
